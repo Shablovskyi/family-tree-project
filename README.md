@@ -20,7 +20,48 @@
 
 ## Структура проекту
 
-family-tree-project/ ├── backend/ │   ├── app.py                     # Основний файл бекенду │   ├── requirements.txt            # Залежності Python │   ├── models/                     # Моделі бази даних │   ├── routes/                     # Ендпоїнти API │   └── utils/                      # Допоміжні функції ├── frontend/ │   ├── public/ │   ├── src/ │   │   ├── components/             # React компоненти │   │   ├── pages/                  # Сторінки додатка │   │   ├── services/               # Запити до API │   │   └── styles/                 # CSS стилі ├── .gitignore └── README.md
+```
+family-tree-project/ 
+├── backend/ 
+│
+├── app.py
+# Основний файл бекенду 
+│
+├── requirements.txt
+# Залежності Python 
+│
+├── models/ 
+# Моделі бази даних 
+│
+├── routes/
+# Ендпоїнти API 
+│   
+└── utils/ 
+# Допоміжні функції 
+├── frontend/ 
+│
+├── public/ 
+│
+├── src/ 
+│
+│
+├── components/
+# React компоненти 
+│
+│
+├── pages/
+# Сторінки додатка 
+│
+│
+├── services/
+# Запити до API 
+│
+│
+└── styles/
+# CSS стилі 
+├── .gitignore 
+└── README.md
+```
 
 ## Встановлення
 
@@ -28,11 +69,13 @@ family-tree-project/ ├── backend/ │   ├── app.py                  
    ```bash
    git clone https://github.com/your-username/family-tree-project.git
    cd family-tree-project
+   ```
 
 2. Налаштування фронтенду:
 
    ```cd frontend
    npm install
+   ```
 
 
 3. Налаштування бекенду:
@@ -41,10 +84,11 @@ family-tree-project/ ├── backend/ │   ├── app.py                  
    python3 -m venv venv            # Створення віртуального середовища
    source venv/bin/activate        # Активація віртуального середовища
    pip install -r requirements.txt # Встановлення залежностей
+   ```
 
 
 
-Запуск проекту
+## Запуск проекту
 
 1. Запуск бекенду на Flask:
 
