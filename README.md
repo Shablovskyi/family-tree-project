@@ -70,13 +70,14 @@ family-tree-project/
 
    ```cd backend
    flask run
+   ```
 
 
 2. Запуск фронтенду на React:
 
    ```cd frontend
    npm start
-
+   ```
 
 
 Бекенд буде запущено за адресою http://127.0.0.1:5000, а фронтенд за адресою http://localhost:3000.
