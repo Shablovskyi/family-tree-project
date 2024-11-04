@@ -25,19 +25,14 @@ family-tree-project/
 ├── backend/ 
 │
 ├── app.py
-# Основний файл бекенду 
 │
 ├── requirements.txt
-# Залежності Python 
 │
 ├── models/ 
-# Моделі бази даних 
 │
 ├── routes/
-# Ендпоїнти API 
 │   
 └── utils/ 
-# Допоміжні функції 
 ├── frontend/ 
 │
 ├── public/ 
@@ -46,19 +41,15 @@ family-tree-project/
 │
 │
 ├── components/
-# React компоненти 
 │
 │
 ├── pages/
-# Сторінки додатка 
 │
 │
 ├── services/
-# Запити до API 
 │
 │
 └── styles/
-# CSS стилі 
 ├── .gitignore 
 └── README.md
 ```
