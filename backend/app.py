@@ -1,11 +1,14 @@
+import os
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from modules import db, User, RequestLog
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Дозволяє крос-доменні запити для інтеграції з React
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:fy7171cd@localhost:5432/family_tree_db'
+CORS(app)
+
+# Використовуємо змінну середовища DATABASE_URL для підключення до бази даних
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
