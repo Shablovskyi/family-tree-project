@@ -1,4 +1,4 @@
-# Використовуємо офіційний образ Python як базовий
+# Базовий образ з Python
 FROM python:3.10-slim
 
 # Встановлюємо залежності для системи (наприклад, psycopg2 потребує додаткових бібліотек)
@@ -19,12 +19,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копіюємо весь код додатка в контейнер
 COPY . .
 
-# Копіюємо скрипт очікування `wait-for-postgres.sh`
-COPY wait-for-postgres.sh /app/wait-for-postgres.sh
-
-# Робимо скрипт виконуваним
-RUN chmod +x /app/wait-for-postgres.sh
-
 # Встановлюємо змінні середовища для Flask
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
@@ -32,5 +26,5 @@ ENV FLASK_RUN_HOST=0.0.0.0
 # Відкриваємо порт 5000 для доступу до додатка Flask
 EXPOSE 5000
 
-# Запускаємо додаток через `wait-for-postgres.sh`
-ENTRYPOINT ["/app/wait-for-postgres.sh", "db", "flask", "run"]
+# Запускаємо додаток
+CMD ["flask", "run"]
