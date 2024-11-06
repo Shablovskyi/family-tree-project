@@ -16,10 +16,15 @@ services:
       FLASK_APP: app.py
       FLASK_RUN_HOST: 0.0.0.0
       DATABASE_URL: postgresql://postgres:fy7171cd@db:5432/family_tree_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: fy7171cd
     ports:
       - "5000:5000"
     depends_on:
       - db
-    entrypoint: ["/app/wait-for-postgres.sh", "db", "flask", "run"]
+    restart: always  # автоматичний перезапуск у випадку невдачі
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - flask
