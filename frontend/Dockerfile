@@ -1,32 +1,17 @@
-# Вибір базового образу з Node.js для збірки React-додатка
-FROM node:16 as build
+# 1. Базовий образ
+FROM node:18
 
-# Встановлюємо робочу директорію в контейнері
+# 2. Робоча директорія
 WORKDIR /app
 
-# Копіюємо package.json і package-lock.json для встановлення залежностей
-COPY package.json package-lock.json ./
+# 3. Копіюємо package.json та lock
+COPY package*.json ./
 
-# Встановлюємо залежності
+# 4. Встановлення залежностей
 RUN npm install
 
-# Копіюємо весь проєкт в робочу директорію
+# 5. Копіюємо решту файлів
 COPY . .
 
-# Створюємо збірку React-додатка
-RUN npm run build
-
-# Вибір базового образу для розгортання з Nginx
-FROM nginx:alpine
-
-# Копіюємо збірку з попереднього етапу в директорію, яку обслуговує Nginx
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Копіюємо налаштування Nginx (опціонально, якщо потрібно налаштувати редиректи)
-# COPY nginx.conf /etc/nginx/nginx.conf
-
-# Відкриваємо порт 80 для доступу до додатка
-EXPOSE 80
-
-# Запуск Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# 6. Старт розробки
+CMD ["npm", "run", "dev"]

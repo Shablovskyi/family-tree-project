@@ -23,8 +23,11 @@ services:
     restart: always  # автоматичний перезапуск у випадку невдачі
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     ports:
-      - "3000:80"
-    depends_on:
-      - flask
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    command: npm run dev
+    restart: unless-stopped
