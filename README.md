@@ -13,10 +13,10 @@
 
 ## Технології
 
-- **Frontend**: React, React Router, Axios
+- **Frontend**: Vue 3, Nuxt 3 
 - **Backend**: Flask, Flask-CORS
 - **Database**: (за потреби) SQLAlchemy з PostgreSQL або SQLite
-- **Інші бібліотеки**: Redux, D3, react-dnd (опціонально)
+- **Інші бібліотеки**: 
 
 ## Структура проекту
 

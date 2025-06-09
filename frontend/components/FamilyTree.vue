@@ -412,212 +412,228 @@ function onPersonClick(node) {
 </script>
 
 <template>
-  <div style="width:100vw; min-height:100vh; background:#fff;">
-    <!-- Назва дерева -->
-    <h1 style="text-align:center; font-size:48px; margin-bottom:0;">{{ treeTitle }}</h1>
-    <!-- Кнопка повернення до основної гілки -->
-    <div v-if="props.treeID !== '1'" style="text-align: center; margin-bottom: 16px;">
-      <button
-          @click="router.push('/branch/1')"
-          style="
-          padding: 10px 22px;
-          background: #31a6ff;
-          color: #fff;
-          font-size: 20px;
-          font-weight: bold;
-          border: none;
-          border-radius: 16px;
-          cursor: pointer;
-          box-shadow: 0 2px 10px #31a6ff44;
-          transition: background 0.2s;
-        "
-          @mouseover="event.target.style.background='#1776b6'"
-          @mouseleave="event.target.style.background='#31a6ff'"
-      >
-        ⬅️ Повернутись до основної гілки
-      </button>
-    </div>
-    <!-- SVG дерево (адаптивне, з drag, zoom, анімаціями) -->
-    <div style="display:flex; justify-content:center;">
-      <svg
-          ref="svgRef"
-          :viewBox="`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`"
-          :width="svgWidth"
-          :height="svgHeight"
-          style="background: #fff; border-radius: 18px; box-shadow:0 3px 12px #0001; cursor:grab"
-          @mousedown="onMouseDown"
-          @mousemove="onMouseMove"
-          @mouseup="onMouseUp"
-          @mouseleave="onMouseUp"
-          @wheel.prevent="onWheel"
-      >
-        <defs>
-          <!-- Градієнти та патерни для вузлів -->
-          <linearGradient id="maleGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#3ddcff" />
-            <stop offset="100%" stop-color="#2572d3" />
-          </linearGradient>
-          <linearGradient id="femaleGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#ffadc2" />
-            <stop offset="100%" stop-color="#e864a7" />
-          </linearGradient>
-          <pattern id="malePattern" patternUnits="userSpaceOnUse" width="40" height="40">
-            <rect width="40" height="40" fill="url(#maleGrad)"/>
-            <path d="M0 28 Q 10 16, 20 28 T 40 28" stroke="#fff" stroke-width="2" fill="none" opacity="0.14"/>
-            <path d="M0 36 Q 10 28, 20 36 T 40 36" stroke="#fff" stroke-width="2" fill="none" opacity="0.08"/>
-          </pattern>
-          <pattern id="femalePattern" patternUnits="userSpaceOnUse" width="40" height="40">
-            <rect width="40" height="40" fill="url(#femaleGrad)"/>
-            <path d="M0 28 Q 10 16, 20 28 T 40 28" stroke="#fff" stroke-width="2" fill="none" opacity="0.13"/>
-            <path d="M0 36 Q 10 28, 20 36 T 40 36" stroke="#fff" stroke-width="2" fill="none" opacity="0.07"/>
-          </pattern>
-        </defs>
-        <!-- Лінії (зв'язки) -->
-        <g>
-          <template v-for="(link, idx) in allLinks">
-            <!-- Всі варіанти зв'язків, платформа, шлюб, батьки, діти -->
-            <line
-                v-if="link.direction === 'marriageToChild'"
-                :x1="allNodes.find(n=>n.id===link.from)?.x"
-                :y1="allNodes.find(n=>n.id===link.from)?.y"
-                :x2="allNodes.find(n=>n.id===link.to)?.x"
-                :y2="allNodes.find(n=>n.id===link.to)?.y"
-                stroke="#bbb" stroke-width="3" opacity="0.6"
-            />
-            <line
-                v-else-if="link.direction === 'personToChild'"
-                :x1="allNodes.find(n=>n.id===link.from)?.x"
-                :y1="allNodes.find(n=>n.id===link.from)?.y"
-                :x2="allNodes.find(n=>n.id===link.to)?.x"
-                :y2="allNodes.find(n=>n.id===link.to)?.y"
-                stroke="#bbb" stroke-width="3" opacity="0.6"
-            />
-            <line
-                v-else-if="link.direction === 'marriageToPlatform'"
-                :x1="link.x"
-                :y1="link.y1"
-                :x2="link.x"
-                :y2="link.y2"
-                stroke="#bbb" stroke-width="3" opacity="0.6"
-            />
-            <line
-                v-else-if="link.direction === 'platform' && Math.abs(link.x2 - link.x1) > 10"
-                :x1="link.x1"
-                :y1="link.y"
-                :x2="link.x2"
-                :y2="link.y"
-                stroke="#333" stroke-width="3" opacity="0.9"
-            />
-            <line
-                v-else-if="link.direction === 'platformToChild'"
-                :x1="link.x"
-                :y1="link.y1"
-                :x2="link.x"
-                :y2="link.y2"
-                stroke="#444"
-                stroke-width="3"
-                opacity="0.7"
-            />
-            <line
-                v-else
-                :x1="allNodes.find(n=>n.id===link.from)?.x"
-                :y1="allNodes.find(n=>n.id===link.from)?.y"
-                :x2="allNodes.find(n=>n.id===link.to)?.x"
-                :y2="allNodes.find(n=>n.id===link.to)?.y"
-                stroke="#ccc"
-                stroke-width="3"
-                opacity="0.7"
-            />
-          </template>
-        </g>
-        <!-- Вузли -->
-        <g>
-          <template v-for="node in allNodes">
-            <!-- Прямокутник вузла (особа або партнер), з клікабельністю якщо є гілка -->
-            <rect
-                v-if="!node.isMarriage"
-                :x="node.x - fixedRectW / 2"
-                :y="node.y - rectH / 2"
-                :width="fixedRectW"
-                :height="rectH"
-                :rx="24"
-                :fill="node.gender === 'male' ? 'url(#malePattern)' : 'url(#femalePattern)'"
-                :stroke="node.treeRef ? '#009b36' : '#222'"
-                :stroke-width="node.treeRef ? 4 : 2"
-                @click="onPersonClick(node)"
-                :style="{
-                  cursor: node.treeRef ? 'pointer' : 'default',
-                  filter: 'drop-shadow(0 6px 32px #009b3633) blur(0.4px) saturate(1.15)',
-                  opacity: 0.93,
-                  transition: 'filter 0.3s, stroke 0.3s, opacity 0.3s'
-                }"
-                :onmouseover="event => event.target.style.filter='drop-shadow(0 16px 48px #009b36cc) blur(2.2px)'"
-                :onmouseleave="event => event.target.style.filter='drop-shadow(0 6px 32px #009b3633) blur(0.4px) saturate(1.15)'"
-                :title="node.treeRef ? 'Перейти у гілку' : ''"
-            />
-            <!-- Прізвище -->
-            <text
-                v-if="!node.isMarriage"
-                :x="node.x"
-                :y="node.y - 20"
-                text-anchor="middle"
-                font-size="18"
-                font-family="Inter, Arial, sans-serif"
-                font-weight="bold"
-                fill="#111"
-                style="pointer-events:none"
-            >{{ node.surname }}</text>
-            <!-- Ім'я -->
-            <text
-                v-if="!node.isMarriage"
-                :x="node.x"
-                :y="node.y"
-                text-anchor="middle"
-                font-size="17"
-                font-family="Inter, Arial, sans-serif"
-                font-weight="bold"
-                fill="#111"
-                style="pointer-events:none"
-            >{{ node.name }}</text>
-            <!-- По батькові -->
-            <text
-                v-if="!node.isMarriage"
-                :x="node.x"
-                :y="node.y + 16"
-                text-anchor="middle"
-                font-size="15"
-                font-family="Inter, Arial, sans-serif"
-                font-weight="bold"
-                fill="#111"
-                style="pointer-events:none"
-            >{{ node.patronymic }}</text>
-            <!-- Дати народження/смерті -->
-            <text
-                v-if="!node.isMarriage && node.birthDate"
-                :x="node.x"
-                :y="node.y + 32"
-                text-anchor="middle"
-                font-size="13"
-                font-family="Inter, Arial, sans-serif"
-                font-weight="bold"
-                fill="#111"
-                style="pointer-events:none"
-            >{{ node.birthDate }} {{node.deathDate }}</text>
-            <!-- Вузол шлюбу (коло) -->
-            <circle
-                v-if="node.isMarriage"
-                :cx="node.x"
-                :cy="node.y"
-                r="15"
-                fill="#fff7"
-                stroke="#ccc"
-                stroke-width="2"
-                opacity="0.8"
-                style="backdrop-filter: blur(6px);"
-            />
-          </template>
-        </g>
-      </svg>
-    </div>
-  </div>
+  <v-app>
+    <v-container fluid>
+      <!-- Заголовок Material UI -->
+      <v-row justify="center">
+        <v-col cols="auto">
+          <v-sheet elevation="3" class="pa-6 mb-4" rounded="xl">
+            <v-typography
+                variant="h2"
+                align="center"
+                class="font-weight-bold"
+            >
+              {{ treeTitle }}
+            </v-typography>
+          </v-sheet>
+        </v-col>
+      </v-row>
+      <!-- Карта для SVG дерева -->
+      <v-row justify="center">
+        <v-col cols="12">
+          <v-card
+              elevation="8"
+              class="pa-2 mb-4"
+              rounded="2xl"
+              style="background: #fff; max-height: 85vh; overflow: hidden;"
+          >
+            <!-- SVG дерево (з твого коду) -->
+            <svg
+                ref="svgRef"
+                :viewBox="`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`"
+                :width="svgWidth"
+                height="75vh"
+                style="background: #fff; border-radius: 18px; box-shadow:0 3px 12px #0001; cursor:grab; user-select: none;"
+                @mousedown="onMouseDown"
+                @mousemove="onMouseMove"
+                @mouseup="onMouseUp"
+                @mouseleave="onMouseUp"
+                @wheel.prevent="onWheel"
+            >
+              <defs>
+                <!-- Градієнти та патерни для вузлів -->
+                <linearGradient id="maleGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#3ddcff" />
+                  <stop offset="100%" stop-color="#2572d3" />
+                </linearGradient>
+                <linearGradient id="femaleGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ffadc2" />
+                  <stop offset="100%" stop-color="#e864a7" />
+                </linearGradient>
+                <pattern id="malePattern" patternUnits="userSpaceOnUse" width="40" height="40">
+                  <rect width="40" height="40" fill="url(#maleGrad)"/>
+                  <path d="M0 28 Q 10 16, 20 28 T 40 28" stroke="#fff" stroke-width="2" fill="none" opacity="0.14"/>
+                  <path d="M0 36 Q 10 28, 20 36 T 40 36" stroke="#fff" stroke-width="2" fill="none" opacity="0.08"/>
+                </pattern>
+                <pattern id="femalePattern" patternUnits="userSpaceOnUse" width="40" height="40">
+                  <rect width="40" height="40" fill="url(#femaleGrad)"/>
+                  <path d="M0 28 Q 10 16, 20 28 T 40 28" stroke="#fff" stroke-width="2" fill="none" opacity="0.13"/>
+                  <path d="M0 36 Q 10 28, 20 36 T 40 36" stroke="#fff" stroke-width="2" fill="none" opacity="0.07"/>
+                </pattern>
+              </defs>
+              <!-- Лінії (зв'язки) -->
+              <g>
+                <template v-for="(link, idx) in allLinks" :key="'link-'+idx">
+                  <!-- Всі варіанти зв'язків, платформа, шлюб, батьки, діти -->
+                  <line
+                      v-if="link.direction === 'marriageToChild'"
+                      :x1="allNodes.find(n=>n.id===link.from)?.x"
+                      :y1="allNodes.find(n=>n.id===link.from)?.y"
+                      :x2="allNodes.find(n=>n.id===link.to)?.x"
+                      :y2="allNodes.find(n=>n.id===link.to)?.y"
+                      stroke="#bbb" stroke-width="3" opacity="0.6"
+                  />
+                  <line
+                      v-else-if="link.direction === 'personToChild'"
+                      :x1="allNodes.find(n=>n.id===link.from)?.x"
+                      :y1="allNodes.find(n=>n.id===link.from)?.y"
+                      :x2="allNodes.find(n=>n.id===link.to)?.x"
+                      :y2="allNodes.find(n=>n.id===link.to)?.y"
+                      stroke="#bbb" stroke-width="3" opacity="0.6"
+                  />
+                  <line
+                      v-else-if="link.direction === 'marriageToPlatform'"
+                      :x1="link.x"
+                      :y1="link.y1"
+                      :x2="link.x"
+                      :y2="link.y2"
+                      stroke="#bbb" stroke-width="3" opacity="0.6"
+                  />
+                  <line
+                      v-else-if="link.direction === 'platform' && Math.abs(link.x2 - link.x1) > 10"
+                      :x1="link.x1"
+                      :y1="link.y"
+                      :x2="link.x2"
+                      :y2="link.y"
+                      stroke="#333" stroke-width="3" opacity="0.9"
+                  />
+                  <line
+                      v-else-if="link.direction === 'platformToChild'"
+                      :x1="link.x"
+                      :y1="link.y1"
+                      :x2="link.x"
+                      :y2="link.y2"
+                      stroke="#444"
+                      stroke-width="3"
+                      opacity="0.7"
+                  />
+                  <line
+                      v-else
+                      :x1="allNodes.find(n=>n.id===link.from)?.x"
+                      :y1="allNodes.find(n=>n.id===link.from)?.y"
+                      :x2="allNodes.find(n=>n.id===link.to)?.x"
+                      :y2="allNodes.find(n=>n.id===link.to)?.y"
+                      stroke="#ccc"
+                      stroke-width="3"
+                      opacity="0.7"
+                  />
+                </template>
+              </g>
+              <!-- Вузли -->
+              <g>
+                <template v-for="node in allNodes" :key="'node-'+node.id">
+                  <!-- Прямокутник вузла (особа або партнер), з клікабельністю якщо є гілка -->
+                  <rect
+                      v-if="!node.isMarriage"
+                      :x="node.x - fixedRectW / 2"
+                      :y="node.y - rectH / 2"
+                      :width="fixedRectW"
+                      :height="rectH"
+                      :rx="24"
+                      :fill="node.gender === 'male' ? 'url(#malePattern)' : 'url(#femalePattern)'"
+                      :stroke="node.treeRef ? '#009b36' : '#222'"
+                      :stroke-width="node.treeRef ? 4 : 2"
+                      @click="onPersonClick(node)"
+                      :style="{
+                      cursor: node.treeRef ? 'pointer' : 'default',
+                      filter: 'drop-shadow(0 6px 32px #009b3633) blur(0.4px) saturate(1.15)',
+                      opacity: 0.93,
+                      transition: 'filter 0.3s, stroke 0.3s, opacity 0.3s'
+                    }"
+                      :onmouseover="event => event.target.style.filter='drop-shadow(0 16px 48px #009b36cc) blur(2.2px)'"
+                      :onmouseleave="event => event.target.style.filter='drop-shadow(0 6px 32px #009b3633) blur(0.4px) saturate(1.15)'"
+                      :title="node.treeRef ? 'Перейти у гілку' : ''"
+                  />
+                  <!-- Прізвище -->
+                  <text
+                      v-if="!node.isMarriage"
+                      :x="node.x"
+                      :y="node.y - 20"
+                      text-anchor="middle"
+                      font-size="18"
+                      font-family="Inter, Arial, sans-serif"
+                      font-weight="bold"
+                      fill="#111"
+                      style="pointer-events:none"
+                  >{{ node.surname }}</text>
+                  <!-- Ім'я -->
+                  <text
+                      v-if="!node.isMarriage"
+                      :x="node.x"
+                      :y="node.y"
+                      text-anchor="middle"
+                      font-size="17"
+                      font-family="Inter, Arial, sans-serif"
+                      font-weight="bold"
+                      fill="#111"
+                      style="pointer-events:none"
+                  >{{ node.name }}</text>
+                  <!-- По батькові -->
+                  <text
+                      v-if="!node.isMarriage"
+                      :x="node.x"
+                      :y="node.y + 16"
+                      text-anchor="middle"
+                      font-size="17"
+                      font-family="Inter, Arial, sans-serif"
+                      font-weight="bold"
+                      fill="#111"
+                      style="pointer-events:none"
+                  >{{ node.patronymic }}</text>
+                  <!-- Дати народження/смерті -->
+                  <text
+                      v-if="!node.isMarriage && node.birthDate"
+                      :x="node.x"
+                      :y="node.y + 32"
+                      text-anchor="middle"
+                      font-size="13"
+                      font-family="Inter, Arial, sans-serif"
+                      font-weight="bold"
+                      fill="#111"
+                      style="pointer-events:none"
+                  >{{ node.birthDate }} {{node.deathDate }}</text>
+                  <!-- Вузол шлюбу (коло) -->
+                  <circle
+                      v-if="node.isMarriage"
+                      :cx="node.x"
+                      :cy="node.y"
+                      r="15"
+                      fill="#fff7"
+                      stroke="#ccc"
+                      stroke-width="2"
+                      opacity="0.8"
+                      style="backdrop-filter: blur(6px);"
+                  />
+                </template>
+              </g>
+            </svg>
+            <!-- Кнопка повернення -->
+            <div v-if="props.treeID !== '1'" style="text-align:center; margin-top:32px; margin-bottom:16px;">
+              <v-btn
+                  color="primary"
+                  prepend-icon="mdi-arrow-left"
+                  elevation="4"
+                  class="text-h6"
+                  rounded="xl"
+                  @click="router.push('/tree')"
+              >
+                Повернутись до основної гілки
+              </v-btn>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </v-app>
 </template>
+

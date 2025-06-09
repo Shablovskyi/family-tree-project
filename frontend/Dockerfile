@@ -1,17 +1,37 @@
-# 1. Базовий образ
-FROM node:18
+# Етап 1: Build
+FROM node:20-alpine AS builder
 
-# 2. Робоча директорія
 WORKDIR /app
 
-# 3. Копіюємо package.json та lock
+# Копіюємо package.json та lock файл для встановлення залежностей
 COPY package*.json ./
-
-# 4. Встановлення залежностей
+# Якщо у тебе pnpm або yarn, заміни команду нижче на відповідну
 RUN npm install
 
-# 5. Копіюємо решту файлів
+# Копіюємо всі файли проекту
 COPY . .
 
-# 6. Старт розробки
-CMD ["npm", "run", "dev"]
+# Збираємо Nuxt додаток (SSR або SSG, залежно від налаштувань)
+RUN npm run build
+
+# Етап 2: Production
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NUXT_PORT=3000
+
+# Копіюємо залежності лише для продакшену
+COPY --from=builder /app/node_modules ./node_modules
+
+# Копіюємо зібраний Nuxt-додаток
+COPY --from=builder /app/.output ./.output
+
+# Копіюємо nuxt.config файл, якщо потрібно
+COPY --from=builder /app/nuxt.config.* ./
+
+# За замовчуванням Nuxt слухає порт 3000
+EXPOSE 3000
+
+CMD ["node", ".output/server/index.mjs"]
